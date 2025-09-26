@@ -1,59 +1,50 @@
 # UST Weather Agent
 
 Weather helper that exposes:
+
 - **A2A**: Agent Card discovery + JSON-RPC `message/send` (input: `"lat,lon"`)
 - **MCP**: stdio tool for Claude Desktop
 
-**Port**: 8082
+Port: **8082**
 
 ---
 
 ## 1) A2A: Run & Call
 
 ### Start (local)
-
 ```bash
 uv run src/a2a_server.py
 ```
 
 ### Discover the Agent Card
-
 ```bash
 curl -s http://localhost:8082/.well-known/agent-card.json | jq .
 ```
+> Use the **`url` from the card** as the JSON-RPC endpoint.
 
-Use the `url` from the card as the JSON-RPC endpoint.
+### Call `message/send`
+Send coordinates as `"lat,lon"` (e.g., Algiers: `36.75,3.06`).
 
-### Call message/send
-
-Send coordinates as `"lat,lon"` (e.g., Algiers: 36.75,3.06).
-
-**Windows cmd.exe one-liner:**
-
+**Windows `cmd.exe` one-liner**
 ```bat
 curl -s http://localhost:8082/ -H "Content-Type: application/json" -d "{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"message/send\",\"params\":{\"message\":{\"messageId\":\"demo-2\",\"role\":\"user\",\"parts\":[{\"kind\":\"text\",\"text\":\"36.75,3.06\"}]}}}"
 ```
 
-**bash/zsh (macOS/Linux):**
-
+**bash/zsh (macOS/Linux)**
 ```bash
 curl -s http://localhost:8082/ \
   -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","id":"1","method":"message/send","params":{"message":{"messageId":"demo-2","role":"user","parts":[{"kind":"text","text":"36.75,3.06"}]}}}'
 ```
 
-*On Windows, prefer double quotes and escape internal quotes.*
-
 ---
 
 ## 2) MCP: Use from Claude Desktop (stdio)
 
-### Open the Claude Desktop config:
+1) Open the Claude Desktop config:
+   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
-### Add this (edit the absolute path):
-
+2) Add this (edit the absolute path):
 ```json
 {
   "mcpServers": {
@@ -70,15 +61,11 @@ curl -s http://localhost:8082/ \
 }
 ```
 
-Restart Claude Desktop. Then ask:
-
-**"Call `ust_weather.forecast` for 36.75, 3.06."**
-
-FastMCP's stdio servers are simple to wire and work well for local desktop hosts.
+3) Restart Claude Desktop. Then ask:
+> “Call `ust_weather.forecast` for `36.75, 3.06`.”
 
 ---
 
 ## 3) Notes
-
-- Uses Open-Meteo (no API key) for the daily summary in the A2A server. Ensure outbound internet access
-- MCP server: keep stdout clean; use logging for diagnostics
+- Uses Open-Meteo (no API key) for the daily summary in the A2A server. Ensure outbound internet.
+- MCP server: keep stdout clean; use logging for diagnostics.

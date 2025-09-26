@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: read
-  packages: write   # needed to push to ghcr.io with GITHUB_TOKEN
+  packages: write
   pages: write
   id-token: write
 
@@ -45,10 +45,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python (to read version from agent.yaml)
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Install PyYAML (needed to read version)
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
 
       - name: Extract version from agent.yaml
         id: ver
@@ -57,7 +62,7 @@ jobs:
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import os, yaml
-          with open(f"agents/{os.environ['AGENT']}/agent.yaml", "r") as f:
+          with open(f"agents/{os.environ['AGENT']}/agent.yaml", "r", encoding="utf-8") as f:
               y = yaml.safe_load(f)
           print(f"version={y.get('version','0.0.0')}")
           PY
