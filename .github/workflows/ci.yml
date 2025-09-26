@@ -49,7 +49,10 @@ jobs:
             --out "$GITHUB_OUTPUT"
 
       - name: Show list of changed agents
-        run: echo "Changed agents: ${{ steps.detect.outputs.agents }}"
+        env:
+          AGENTS: ${{ steps.detect.outputs.agents }}
+        run: |
+          echo "Changed agents: $AGENTS"
 
   build:
     name: Build (no push) for changed agents

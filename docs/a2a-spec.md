@@ -17,12 +17,14 @@
 ### `message/send` (REQUIRED)
 
 #### Request
+
 ```json
 {"jsonrpc":"2.0","id":"1","method":"message/send",
  "params":{"message":{"messageId":"demo-1","role":"user","parts":[{"kind":"text","text":"hello"}]}}}
 ```
 
 #### Success
+
 ```json
 {"jsonrpc":"2.0","id":"1","result":{"task":{
   "id":"<uuid>","state":"TASK_STATE_COMPLETED",
@@ -58,4 +60,32 @@ Create `templates/agent-card.json`:
   "securitySchemes": [{ "type": "http", "scheme": "bearer", "name": "bearer" }],
   "security": [{ "bearer": [] }]
 }
+```
+
+### YAML equivalent
+
+```yaml
+protocolVersion: "0.3.0"
+version: "0.1.0"
+name: "<AGENT NAME>"
+description: "<one-line description>"
+provider:
+  name: "UST"
+  contact: "agent-hub@ust.com"
+defaultInputModes: ["text"]
+defaultOutputModes: ["text"]
+skills:
+  - id: "<namespace.skill>"
+    name: "Skill name"
+    description: "What it does"
+preferredTransport: "JSONRPC"
+url: "http://localhost:8080/"
+capabilities:
+  streaming: false
+securitySchemes:
+  - type: "http"
+    scheme: "bearer"
+    name: "bearer"
+security:
+  - bearer: []
 ```
