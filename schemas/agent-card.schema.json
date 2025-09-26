@@ -1,55 +1,43 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "UST A2A Agent Card (minimal, SDK-aligned)",
+  "title": "UST Agent Card (Public)",
   "type": "object",
-  "additionalProperties": true,
-  "required": ["protocolVersion", "name", "description", "url", "preferredTransport", "skills"],
+  "required": ["protocolVersion", "version", "name", "description", "url", "defaultInputModes", "defaultOutputModes", "skills"],
   "properties": {
     "protocolVersion": { "type": "string" },
-    "name":            { "type": "string", "minLength": 1 },
-    "description":     { "type": "string" },
-    "version":         { "type": "string" },
-    "url":             { "type": "string", "format": "uri" },
-    "preferredTransport": {
-      "type": "string",
-      "enum": ["JSONRPC", "GRPC", "HTTP+JSON"]
+    "version": { "type": "string" },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "url": { "type": "string", "format": "uri" },
+    "preferredTransport": { "type": "string" },
+    "defaultInputModes": { "type": "array", "items": { "type": "string" } },
+    "defaultOutputModes": { "type": "array", "items": { "type": "string" } },
+    "capabilities": { "type": "object" },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description", "tags"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "inputModes": { "type": "array", "items": { "type": "string" } },
+          "outputModes": { "type": "array", "items": { "type": "string" } }
+        }
+      }
     },
+    "securitySchemes": { "type": "object" },
+    "security": { "type": "array" },
     "additionalInterfaces": {
       "type": "array",
       "items": {
         "type": "object",
-        "additionalProperties": true,
         "required": ["url", "transport"],
         "properties": {
           "url": { "type": "string", "format": "uri" },
           "transport": { "type": "string" }
-        }
-      }
-    },
-    "provider": {
-      "type": "object",
-      "additionalProperties": true,
-      "properties": {
-        "name": { "type": "string" },
-        "contact": { "type": "string" }
-      }
-    },
-    "authentication": { "type": "object", "additionalProperties": true },
-    "capabilities":   { "type": "object", "additionalProperties": true },
-    "defaultInputModes":  { "type": "array", "items": { "type": "string" } },
-    "defaultOutputModes": { "type": "array", "items": { "type": "string" } },
-    "skills": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "object",
-        "additionalProperties": true,
-        "required": ["id", "description"],
-        "properties": {
-          "id":          { "type": "string" },
-          "name":        { "type": "string" },
-          "description": { "type": "string" },
-          "tags":        { "type": "array", "items": { "type": "string" } }
         }
       }
     }

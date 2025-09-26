@@ -1,0 +1,5 @@
+{
+  "MD013": false, // line length off (READMEs often include long URLs/commands)
+  "MD033": false, // allow raw HTML if needed
+  "MD041": true   // require top-level heading
+}

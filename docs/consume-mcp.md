@@ -1,24 +1,35 @@
-# Consume via MCP (Claude Desktop)
+# Consume Agents via MCP (Claude Desktop)
 
-## 1) Where is the config?
+## 1) Install Claude Desktop and find the config
 
-- **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+On Windows, open (or create):
+```bash
+%APPDATA%\Claude\claude_desktop_config.json
+```
 
-*(You can also open it from Claude Desktop → **Settings → Developer → Edit Config**, then restart.)*
+See MCP "connect local servers" guide for paths and behavior.
 
-## 2) Add your agent (copy–paste)
+## 2) Add the servers
 
-Update your JSON to include an entry like this (set an **absolute path**):
+Adjust absolute paths for your machine:
 
 ```json
 {
   "mcpServers": {
-    "<agent_name>": {
+    "ust_calculator": {
       "command": "uv",
       "args": [
         "--directory",
-        "/ABS/PATH/ust-agent-hub-mvp/agents/<agent_name>",
+        "C:/ABSOLUTE/PATH/ust-agent-hub-mvp/agents/calculator",
+        "run",
+        "src/mcp_server.py"
+      ]
+    },
+    "ust_weather": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "C:/ABSOLUTE/PATH/ust-agent-hub-mvp/agents/weather",
         "run",
         "src/mcp_server.py"
       ]
@@ -27,15 +38,16 @@ Update your JSON to include an entry like this (set an **absolute path**):
 }
 ```
 
-Restart Claude Desktop; the tool should appear automatically under MCP.
+## 3) Restart Claude Desktop
 
-## 3) Troubleshooting
+Claude will spawn both MCP stdio servers automatically (you do not run them yourself).
 
-- Path must be absolute and the directory must contain your `src/mcp_server.py`
-- Run the server manually to surface errors:
+## 4) Use the tools
 
-```bash
-uv run src/mcp_server.py
-```
+- Ask: "Use `ust_calculator.calc` to evaluate 7*6."
+- Ask: "Call `ust_weather.forecast` for 36.75, 3.06."
 
-- **Stdio rule:** MCP servers must not write logs to stdout (protocol frames only). Log to stderr.
+## Notes
+
+- **STDIO servers**: do not print to stdout; use Python logging (stderr)
+- FastMCP auto-generates tool schemas from type hints/docstrings

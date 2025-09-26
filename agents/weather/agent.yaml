@@ -1,0 +1,38 @@
+name: weather
+version: 0.1.0
+owner: you@ust.com
+language: python
+frameworks: []  # (optional)
+description: "Weather agent with MCP (current) + A2A (daily summary)."
+license: internal
+
+entrypoints:
+  mcp:
+    type: stdio
+    command: uv
+    args: ["run", "src/mcp_server.py"]
+  a2a:
+    url: http://localhost:8082/   # use your runtime URL; card's `url` must match
+    transport: JSONRPC
+
+mcp:
+  tools:
+    - name: forecast
+      description: "Get a one-line daily summary for latitude,longitude."
+      inputSchema:
+        type: object
+        properties:
+          lat: { type: number }
+          lon: { type: number }
+        required: [lat, lon]
+
+a2a:
+  skills:
+    - id: weather.forecast_daily
+      description: "Daily forecast summary for a lat,lon (e.g., '36.75,3.06')."
+
+models: { default: gpt-4o-mini }
+env: { required: [] }
+security:
+  data_access: "no PII"
+  outbound_network: ["api.open-meteo.com"]

@@ -1,5 +1,5 @@
 [project]
-name = "python-agent-template"
+name = "ust-calculator-agent"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [

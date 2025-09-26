@@ -1,0 +1,37 @@
+name: calculator
+version: 0.1.0
+owner: you@ust.com
+language: python
+frameworks: []  # (optional) we didn't use LangGraph in this sample
+description: "Minimal calculator agent with MCP (stdio) + A2A (JSON-RPC)."
+license: internal
+
+entrypoints:
+  mcp:
+    type: stdio
+    command: uv
+    args: ["run", "src/mcp_server.py"]
+  a2a:
+    url: http://localhost:8081/   # use your runtime URL; card's `url` must match
+    transport: JSONRPC
+
+mcp:
+  tools:
+    - name: calc
+      description: "Evaluate an arithmetic expression like '7*6' or '10/4'."
+      inputSchema:
+        type: object
+        properties:
+          expression: { type: string }
+        required: [expression]
+
+a2a:
+  skills:
+    - id: calc.compute
+      description: "Compute a simple arithmetic expression like '2+3' or '10/4'."
+
+models: { default: gpt-4o-mini }
+env: { required: [] }
+security:
+  data_access: "no PII"
+  outbound_network: []

@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
-import sys, json, yaml, pathlib
-from jsonschema import validate, Draft202012Validator
+import os, json, yaml
+from jsonschema import validate
 
-root = pathlib.Path(__file__).resolve().parents[1]
-schema = json.load(open(root/"schemas/agent.schema.json"))
-validator = Draft202012Validator(schema)
+SCHEMA = "schemas/agent.schema.json"
 
-errors = 0
-for p in sorted((root/"agents").glob("*/agent.yaml")):
-    data = yaml.safe_load(open(p))
-    errs = sorted(validator.iter_errors(data), key=lambda e: e.path)
-    if errs:
-        print(f"[FAIL] {p}")
-        for e in errs:
-            print("  -", e.message)
-        errors += 1
-    else:
-        print(f"[OK]   {p}")
+def find_manifests(root="agents"):
+    for dirpath, dirnames, filenames in os.walk(root):
+        if "agent.yaml" in filenames or "agent.yml" in filenames:
+            yield os.path.join(dirpath, "agent.yaml")
 
-sys.exit(1 if errors else 0)
+def main():
+    schema = json.load(open(SCHEMA, "r"))
+    errors = 0
+    for manifest in find_manifests():
+        try:
+            data = yaml.safe_load(open(manifest, "r"))
+            validate(instance=data, schema=schema)
+            print(f"[OK] {manifest}")
+        except Exception as e:
+            print(f"[FAIL] {manifest}: {e}")
+            errors += 1
+    if errors:
+        raise SystemExit(1)
+
+if __name__ == "__main__":
+    main()

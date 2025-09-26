@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
-import sys, json, pathlib
-from urllib.parse import urlparse
-from jsonschema import Draft202012Validator
-import requests
+import sys, json, requests
+from jsonschema import validate
 
-if len(sys.argv) != 2:
-    print("usage: validate_agent_card.py <URL-or-path>")
-    sys.exit(2)
+SCHEMA_PATH = "schemas/agent-card.schema.json"
 
-target = sys.argv[1]
-root = pathlib.Path(__file__).resolve().parents[1]
-schema = json.load(open(root/"schemas/agent-card.schema.json"))
-validator = Draft202012Validator(schema)
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python scripts/validate_agent_card.py http://host:port/.well-known/agent-card.json")
+        sys.exit(2)
 
-if urlparse(target).scheme in ("http","https"):
-    resp = requests.get(target, timeout=5)
-    resp.raise_for_status()
-    data = resp.json()
-else:
-    data = json.load(open(target))
+    url = sys.argv[1]
+    data = requests.get(url, timeout=5).json()
+    schema = json.load(open(SCHEMA_PATH, "r"))
+    validate(instance=data, schema=schema)
+    print("[OK] agent card validates:", data.get("name"))
 
-errs = list(validator.iter_errors(data))
-if errs:
-    print("[FAIL] agent card:")
-    for e in errs:
-        print("  -", e.message)
-    sys.exit(1)
-print("[OK] agent card")
+if __name__ == "__main__":
+    main()
