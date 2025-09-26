@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "python-agent-template"
+version = "0.1.0"
+description = "UST Agent template (Python)"
+authors = ["UST Platform <agent-hub@ust.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = "^0.30.0"
+pydantic = "^2.8.0"
+httpx = "^0.27.0"
+# MCP python SDK (provides FastMCP helper) — check docs for latest
+mcp = "^1.2.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.0"
+ruff = "^0.6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

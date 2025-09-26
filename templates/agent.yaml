@@ -1,0 +1,46 @@
+# Template: copy to /agents/<your-agent>/agent.yaml and fill placeholders.
+name: <agent-name>                # e.g., calculator
+version: 0.1.0
+owner: <team-or-owner>@ust.com
+language: python
+frameworks: [langgraph]           # or [none]
+description: "<one-line summary of your agent>"
+license: internal
+
+entrypoints:
+  mcp:
+    type: stdio
+    command: uv                  # or "python", or "poetry"
+    args: ["run", "src/mcp_server.py"]
+  a2a:
+    # Dev conventions for local run (the SDK also serves the card):
+    dev:
+      port: 8080
+      cardPath: "/.well-known/agent-card.json"  # we override SDK default here
+    preferredTransport: JSONRPC
+    # Optional: when CI mirrors the card to Pages, place URL here:
+    publicCardUrl: ""
+
+mcp:
+  tools:
+    - name: <namespace.tool>     # e.g., calc.add
+      description: "<what this tool does>"
+      inputSchema:
+        type: object
+        properties: {}
+        required: []
+
+a2a:
+  skills:
+    - id: <namespace.skill>      # e.g., calc.compute
+      description: "<what this skill does>"
+
+models:
+  default: gpt-4o-mini           # optional
+
+env:
+  required: []                   # e.g., ["OPENAI_API_KEY"]
+
+security:
+  data_access: "no PII"
+  outbound_network: []           # e.g., ["api.open-meteo.com"]
