@@ -1,0 +1,75 @@
+name: CI (validate + build-only)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate manifests & required files
+    runs-on: ubuntu-latest
+    outputs:
+      agents: ${{ steps.detect.outputs.agents }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install validation deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install jsonschema pyyaml requests ruff
+
+      - name: Lint repo (ruff)
+        run: ruff check .
+
+      - name: Validate agent manifests (schemas/agent.schema.json)
+        run: python scripts/validate_agent_manifest.py
+
+      - name: Enforce agent README
+        run: python scripts/require_agent_readme.py
+
+      - name: Detect changed agents
+        id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          python scripts/detect_changed_agents.py --event "$EVENT_NAME" \
+            --base "$BASE_REF" --before "$BEFORE_SHA" --head "$HEAD_SHA" \
+            --out "$GITHUB_OUTPUT"
+
+      - name: Show list of changed agents
+        run: echo "Changed agents: ${{ steps.detect.outputs.agents }}"
+
+  build:
+    name: Build (no push) for changed agents
+    needs: validate
+    if: ${{ needs.validate.outputs.agents != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        agent: ${{ fromJson(needs.validate.outputs.agents) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build agent image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: agents/${{ matrix.agent }}
+          push: false
+          tags: ghcr.io/${{ github.repository_owner }}/agent-${{ matrix.agent }}:dryrun
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}

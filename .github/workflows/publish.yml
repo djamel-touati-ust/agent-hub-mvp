@@ -1,0 +1,134 @@
+name: Publish (images + catalog + Pages)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write   # needed to push to ghcr.io with GITHUB_TOKEN
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    name: Detect changed agents
+    runs-on: ubuntu-latest
+    outputs:
+      agents: ${{ steps.detect.outputs.agents }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: |
+          python scripts/detect_changed_agents.py --event "$EVENT_NAME" \
+            --base "$BASE_REF" --before "$BEFORE_SHA" --head "$HEAD_SHA" \
+            --out "$GITHUB_OUTPUT"
+
+  build-and-push:
+    name: Build & push GHCR images (only changed)
+    needs: detect
+    if: ${{ needs.detect.outputs.agents != '[]' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        agent: ${{ fromJson(needs.detect.outputs.agents) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python (to read version from agent.yaml)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Extract version from agent.yaml
+        id: ver
+        env:
+          AGENT: ${{ matrix.agent }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import os, yaml
+          with open(f"agents/{os.environ['AGENT']}/agent.yaml", "r") as f:
+              y = yaml.safe_load(f)
+          print(f"version={y.get('version','0.0.0')}")
+          PY
+
+      - name: Log in to GHCR (GITHUB_TOKEN)
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: agents/${{ matrix.agent }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/agent-${{ matrix.agent }}:${{ steps.ver.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/agent-${{ matrix.agent }}:sha-${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/agent-${{ matrix.agent }}:edge
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+
+  publish-catalog:
+    name: Generate catalog + build docs
+    needs: [detect, build-and-push]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml jsonschema
+
+      - name: Generate catalog.json and docs/agents/*/agent-card.json
+        env:
+          OWNER: ${{ github.repository_owner }}
+          REPO:  ${{ github.event.repository.name }}
+          REF:   ${{ github.sha }}
+        run: python scripts/generate_catalog.py "$OWNER" "$REPO" "$REF"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build Jekyll site (docs/)
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs/_site
+
+  deploy-pages:
+    name: Deploy Pages
+    needs: publish-catalog
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
