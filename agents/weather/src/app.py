@@ -25,4 +25,3 @@ async def daily_summary(lat: float, lon: float) -> str:
     lo = d["temperature_2m_min"][0]
     p  = d["precipitation_sum"][0]
     return f"Today: high {hi}°C, low {lo}°C, precip {p} mm."
-#

@@ -1,9 +1,11 @@
 # UST Agent Hub — Docs
 
+
 - **Submit an agent** → [docs/submit.md](./submit.md)
 - **Consume via A2A** → [docs/consume-a2a.md](./consume-a2a.md)
 - **Consume via MCP** → [docs/consume-mcp.md](./consume-mcp.md)
 - **A2A MVP spec notes** → [docs/a2a-spec.md](./a2a-spec.md)
+- **Agent Catalog** →[Agent Catalog](catalog.html)
 
 This hub standardizes:
 - **A2A** (Agent-to-Agent) discovery and messaging using an **Agent Card** + **JSON-RPC** (`message/send`).
