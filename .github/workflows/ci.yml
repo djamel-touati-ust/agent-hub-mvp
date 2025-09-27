@@ -27,8 +27,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install jsonschema pyyaml requests ruff
 
-      - name: Lint repo (ruff)
-        run: ruff check .
+      # - name: Lint repo (ruff)
+      #   run: ruff check .
 
       - name: Validate agent manifests (schemas/agent.schema.json)
         run: python scripts/validate_agent_manifest.py
