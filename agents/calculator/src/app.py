@@ -30,4 +30,3 @@ def compute(expr: str) -> str:
         return f"Error: {e}"
 
     return f"{expr} = {int(val) if abs(val - round(val)) < 1e-12 else val}"
-#test running
