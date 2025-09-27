@@ -54,6 +54,15 @@ jobs:
         run: |
           echo "Changed agents: $AGENTS"
 
+      - name: Check required docs exist
+        run: |
+          test -f docs/index.md
+          test -f docs/a2a-spec.md
+          for d in agents/*; do
+            [ -d "$d" ] || continue
+            test -f "$d/README.md" || { echo "Missing README in $d"; exit 1; }
+          done
+
   build:
     name: Build (no push) for changed agents
     needs: validate

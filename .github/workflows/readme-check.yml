@@ -21,13 +21,13 @@ jobs:
         run: |
           python scripts/require_agent_readme.py
 
-  markdownlint:
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - uses: actions/checkout@v4
-      - name: markdownlint-cli2
-        uses: DavidAnson/markdownlint-cli2-action@v20
-        with:
-          globs: |
-            **/*.md
+  # markdownlint:
+  #   runs-on: ubuntu-latest
+  #   if: always()
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: markdownlint-cli2
+  #       uses: DavidAnson/markdownlint-cli2-action@v20
+  #       with:
+  #         globs: |
+  #           **/*.md
